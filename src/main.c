@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     // fgets will include the '\n' symbol in the end
     cmd[strlen(cmd) - 1] = '\0';
 
-    printf("%s: command not found", cmd);
+    printf("%s: command not found\n", cmd);
   }
 
   return 0;
