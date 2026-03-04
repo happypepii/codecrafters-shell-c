@@ -1,15 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
   // Flush after every printf
   setbuf(stdout, NULL);
 
-  char cmd[20];
-  // TODO: Uncomment the code below to pass the first stage
   printf("$ ");
-  scanf("%s", cmd);
 
+  char cmd[100];
+  fgets(cmd, 100, stdin);
+  // fgets will include the '\n' symbol in the end
+  cmd[strlen(cmd) - 1] = '\0';
+  
   printf("%s: command not found", cmd);
 
   return 0;
