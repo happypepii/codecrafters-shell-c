@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     input[strlen(input) - 1] = '\0';
 
     char *cmd = strtok(input, " ");
-    char *arg = strtok(NULL, " ");
+    char *arg = strtok(NULL, "");
 
     if (strcmp(cmd, "exit") == 0)
     {
