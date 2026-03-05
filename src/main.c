@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 int main(int argc, char *argv[])
 {
@@ -35,7 +36,31 @@ int main(int argc, char *argv[])
       }
       else
       {
-        printf("%s: not found\n", arg);
+        char *path_env = getenv("PATH");
+        char *dir = strtok(path_env, ":");
+        int found = 0;
+
+        while (dir != NULL)
+        {
+          // try to find arg in *path
+          char full_path[1024];
+          sprintf(full_path, "%s/%s", dir, arg);
+
+          // if find an executable file
+          if (access(full_path, X_OK) == 0)
+          {
+            printf("%s is %s\n", arg, full_path);
+            found = 1;
+            break;
+          }
+
+          // return NULL when finishing splitting
+          dir = strtok(NULL, ":");
+        }
+        if (found == 0)
+        {
+          printf("%s: not found\n", arg);
+        }
       }
     }
     else
