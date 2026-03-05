@@ -4,47 +4,43 @@
 
 int main(int argc, char *argv[])
 {
-  char *builtinCmd[] = {"echo", "type", "exit"};
-  int length = 3;
+  char input[1024];
+  // Flush after every printf
+  setbuf(stdout, NULL);
 
   while (1)
   {
-    // Flush after every printf
-    setbuf(stdout, NULL);
-
     printf("$ ");
-
-    char cmd[100];
-    fgets(cmd, 100, stdin);
+    fgets(input, sizeof(input), stdin);
     // fgets will include the '\n' symbol in the end
-    cmd[strlen(cmd) - 1] = '\0';
+    input[strlen(input) - 1] = '\0';
+
+    char *cmd = strtok(input, " ");
+    char *arg = strtok(NULL, " ");
 
     if (strcmp(cmd, "exit") == 0)
     {
       break;
     }
-    else if (strncmp(cmd, "type ", 5) == 0)
+    else if (strcmp(cmd, "echo") == 0)
     {
-      int found = 0;
-      for (int i = 0; i < length; i++)
-      {
-        if (strcmp(builtinCmd[i], cmd + 5) == 0)
-        {
-          found = 1;
-          printf("%s is a shell builtin\n", cmd + 5);
-          break;
-        }
-      }
-      if(found == 0) printf("%s: not found\n", cmd + 5);
-    }
-    else if (strncmp(cmd, "echo ", 5) == 0)
-    {
-      printf("%s", cmd + 5);
+      printf("%s", arg);
       printf("\n");
+    }
+    else if (strcmp(cmd, "type") == 0)
+    {
+      if (!strcmp(arg, "exit") || !strcmp(arg, "type") || !strcmp(arg, "echo"))
+      {
+        printf("%s is a shell builtin\n", arg);
+      }
+      else
+      {
+        printf("%s: not found\n", arg);
+      }
     }
     else
     {
-      printf("%s: command not found\n", cmd);
+      printf("%s: input not found\n", cmd);
     }
   }
 
