@@ -25,17 +25,17 @@ int main(int argc, char *argv[])
     }
     else if (strncmp(cmd, "type ", 5) == 0)
     {
+      int found = 0;
       for (int i = 0; i < length; i++)
       {
         if (strcmp(builtinCmd[i], cmd + 5) == 0)
         {
-          printf("%s is a shell builtins", cmd + 5);
-        }
-        else
-        {
-          printf("%s: not found", cmd + 5);
+          found = 1;
+          printf("%s is a shell builtin\n", cmd + 5);
+          break;
         }
       }
+      if(found == 0) printf("%s: not found\n", cmd + 5);
     }
     else if (strncmp(cmd, "echo ", 5) == 0)
     {
