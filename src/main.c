@@ -3,6 +3,8 @@
 #include <string.h>
 #include <unistd.h>
 
+char* isExcutable(char *arg);
+
 int main(int argc, char *argv[])
 {
   char input[1024];
@@ -36,30 +38,10 @@ int main(int argc, char *argv[])
       }
       else
       {
-        char *path_env = getenv("PATH");
-        char *path_copy = strdup(path_env);
-        char *dir = strtok(path_copy, ":");
-        int found = 0;
-
-        while (dir != NULL)
-        {
-          // try to find arg in path
-          char full_path[1024];
-          sprintf(full_path, "%s/%s", dir, arg);
-
-          // if find an executable file
-          if (access(full_path, X_OK) == 0)
-          {
-            printf("%s is %s\n", arg, full_path);
-            found = 1;
-            break;
-          }
-
-          // return NULL when finishing splitting
-          dir = strtok(NULL, ":");
-        }
-        if (found == 0)
-        {
+        char* full_path = isExcutable(arg);
+        if(full_path != NULL){
+          printf("%s is %s\n", arg, full_path);
+        } else{
           printf("%s: not found\n", arg);
         }
       }
@@ -71,4 +53,34 @@ int main(int argc, char *argv[])
   }
 
   return 0;
+}
+
+char* isExcutable(char *arg)
+{
+  char *path_env = getenv("PATH");
+  if (!path_env) return NULL;
+
+  char *path_copy = strdup(path_env); // duplicate the path in case of modification
+  char *dir = strtok(path_copy, ":");
+  char *full_path[1024]; 
+  char *result = NULL;
+
+  while (dir != NULL)
+  {
+    sprintf(full_path, "%s/%s", dir, arg);
+
+    // if find an executable file
+    if (access(full_path, X_OK) == 0)
+    {
+      result = strdup(full_path);
+      break;
+    }
+
+    // return NULL when finishing splitting
+    dir = strtok(NULL, ":");
+  }
+
+  free(path_copy);
+
+  return full_path;
 }
