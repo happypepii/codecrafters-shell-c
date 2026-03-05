@@ -37,12 +37,13 @@ int main(int argc, char *argv[])
       else
       {
         char *path_env = getenv("PATH");
-        char *dir = strtok(path_env, ":");
+        char *path_copy = strdup(path_env);
+        char *dir = strtok(path_copy, ":");
         int found = 0;
 
         while (dir != NULL)
         {
-          // try to find arg in *path
+          // try to find arg in path
           char full_path[1024];
           sprintf(full_path, "%s/%s", dir, arg);
 
