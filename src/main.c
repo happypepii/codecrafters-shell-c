@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
         char* full_path = isExcutable(arg);
         if(full_path != NULL){
           printf("%s is %s\n", arg, full_path);
+          free(full_path);
         } else{
           printf("%s: not found\n", arg);
         }
@@ -62,17 +63,17 @@ char* isExcutable(char *arg)
 
   char *path_copy = strdup(path_env); // duplicate the path in case of modification
   char *dir = strtok(path_copy, ":");
-  char *full_path[1024]; 
+  char temp_path[1024]; 
   char *result = NULL;
 
   while (dir != NULL)
   {
-    sprintf(full_path, "%s/%s", dir, arg);
+    sprintf(temp_path, "%s/%s", dir, arg);
 
     // if find an executable file
-    if (access(full_path, X_OK) == 0)
+    if (access(temp_path, X_OK) == 0)
     {
-      result = strdup(full_path);
+      result = strdup(temp_path);
       break;
     }
 
@@ -82,5 +83,5 @@ char* isExcutable(char *arg)
 
   free(path_copy);
 
-  return full_path;
+  return result;
 }
