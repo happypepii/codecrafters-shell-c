@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 
 char *findExecutable(char *name);
+int is_builtin(char *cmd);
 
 int main(int argc, char *argv[])
 {
@@ -37,7 +38,7 @@ int main(int argc, char *argv[])
       {
         printf("type: missing argument\n");
       }
-      else if (!strcmp(rest_args, "exit") || !strcmp(rest_args, "type") || !strcmp(rest_args, "echo"))
+      else if (is_builtin(rest_args))
       {
         printf("%s is a shell builtin\n", rest_args);
       }
@@ -147,4 +148,14 @@ char *findExecutable(char *name)
 
   free(path_copy);
   return result;
+}
+
+int is_builtin(char *cmd) {
+    char *builtins[] = {"exit", "type", "echo", "pwd", NULL};
+    for (int i = 0; builtins[i] != NULL; i++) {
+        if (strcmp(cmd, builtins[i]) == 0) {
+            return 1;
+        }
+    }
+    return 0;
 }
