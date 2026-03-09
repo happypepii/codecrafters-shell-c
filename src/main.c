@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,6 +53,18 @@ int main(int argc, char *argv[])
         {
           printf("%s: not found\n", rest_args);
         }
+      }
+    }
+    else if (strcmp(cmd, "pwd") == 0)
+    {
+      char buf[1024];
+      if (getcwd(buf, sizeof(buf)) != NULL)
+      {
+        printf("%s\n", buf);
+      }
+      else
+      {
+        perror("pwd error");
       }
     }
     else
