@@ -56,17 +56,17 @@ int main(int argc, char *argv[])
       pid_t pid = fork();
       if (pid == -1)
         perror("fork failed");
-      else if (pid == 0)
+      else if (pid == 0) // child process
       {
         char *my_args[64];
         int i = 0;
+        my_args[i++] = cmd;
 
         char *token = strtok(arg, " ");
         while (token != NULL && i < 63)
         {
-          my_args[i] = token;
-          i++;
-          token = strtok(arg, " ");
+          my_args[i++] = token;
+          token = strtok(NULL, " ");
         }
         my_args[i] = NULL; // the last parameter for execvp has to be NULL
         execvp(isExecutable(cmd), my_args); // if child process
