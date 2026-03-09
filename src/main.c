@@ -4,23 +4,21 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-char *isExecutable(char *arg);
+char *findExecutable(char *name);
 
 int main(int argc, char *argv[])
 {
   char input[1024];
-  // Flush after every printf
-  setbuf(stdout, NULL);
+  setbuf(stdout, NULL); // Flush after every printf
 
   while (1)
   {
     printf("$ ");
     fgets(input, sizeof(input), stdin);
-    // fgets will include the '\n' symbol in the end
-    input[strlen(input) - 1] = '\0';
+    input[strlen(input) - 1] = '\0'; // fgets includes '\n', strip it
 
     char *cmd = strtok(input, " ");
-    char *arg = strtok(NULL, "");
+    char *rest_args = strtok(NULL, ""); // everything after the command
 
     if (strcmp(cmd, "exit") == 0)
     {
@@ -28,95 +26,112 @@ int main(int argc, char *argv[])
     }
     else if (strcmp(cmd, "echo") == 0)
     {
-      printf("%s", arg);
-      printf("\n");
+      // rest_args might be NULL if user types "echo" with no arguments
+      printf("%s\n", rest_args ? rest_args : "");
     }
     else if (strcmp(cmd, "type") == 0)
     {
-      if (!strcmp(arg, "exit") || !strcmp(arg, "type") || !strcmp(arg, "echo"))
+      // rest_args might be NULL if user types "type" with no arguments
+      if (rest_args == NULL)
       {
-        printf("%s is a shell builtin\n", arg);
+        printf("type: missing argument\n");
+      }
+      else if (!strcmp(rest_args, "exit") || !strcmp(rest_args, "type") || !strcmp(rest_args, "echo"))
+      {
+        printf("%s is a shell builtin\n", rest_args);
       }
       else
       {
-        char *full_path = isExecutable(arg);
+        char *full_path = findExecutable(rest_args);
         if (full_path != NULL)
         {
-          printf("%s is %s\n", arg, full_path);
+          printf("%s is %s\n", rest_args, full_path);
           free(full_path);
         }
         else
         {
-          printf("%s: not found\n", arg);
+          printf("%s: not found\n", rest_args);
         }
-      }
-    }
-    else if (isExecutable(cmd) != NULL)
-    {
-      // an executable program
-      pid_t pid = fork();
-      if (pid == -1)
-        perror("fork failed");
-      else if (pid == 0) // child process
-      {
-        char *my_args[64];
-        int i = 0;
-        my_args[i++] = cmd;
-
-        char *token = strtok(arg, " ");
-        while (token != NULL && i < 63)
-        {
-          my_args[i++] = token;
-          token = strtok(NULL, " ");
-        }
-        my_args[i] = NULL; // the last parameter for execvp has to be NULL
-        execvp(isExecutable(cmd), my_args); // if child process
-
-        // if execvp succeed, this will never be called.
-        perror("execv failed"); 
-        exit(1);
-      }
-      else{
-        wait(NULL); 
-        // if parent process, wait for child process before proceeding.
       }
     }
     else
     {
-      printf("%s: command not found\n", cmd);
+      // Declare exec_path here so its scope is limited to where it's needed,
+      // and we can free it in the same block without leaking in builtin branches
+      char *exec_path = findExecutable(cmd);
+      if (exec_path != NULL)
+      {
+        pid_t pid = fork();
+        if (pid == -1)
+        {
+          perror("fork failed");
+        }
+        else if (pid == 0) // child process
+        {
+          char *exec_argv[64];
+          int i = 0;
+          exec_argv[i++] = cmd;
+
+          char *token = strtok(rest_args, " ");
+          while (token != NULL && i < 63)
+          {
+            exec_argv[i++] = token;
+            token = strtok(NULL, " ");
+          }
+          exec_argv[i] = NULL; // execvp requires NULL-terminated argv
+
+          execvp(exec_path, exec_argv);
+
+          // Only reached if execvp fails
+          perror("execvp failed");
+          exit(1);
+          // No need to free exec_path here: on execvp success the process image
+          // is replaced entirely, and on failure we exit immediately anyway
+        }
+        else // parent process
+        {
+          wait(NULL); // wait for child to finish before next prompt
+        }
+
+        free(exec_path); // only parent reaches here
+      }
+      else
+      {
+        printf("%s: command not found\n", cmd);
+      }
     }
   }
 
   return 0;
 }
 
-char *isExecutable(char *arg)
+// Search each directory in PATH for an executable named `name`.
+// Returns a heap-allocated full path if found, or NULL if not found.
+// Caller is responsible for freeing the returned string.
+char *findExecutable(char *name)
 {
   char *path_env = getenv("PATH");
   if (!path_env)
     return NULL;
 
-  char *path_copy = strdup(path_env); // duplicate the path in case of modification
+  char *path_copy = strdup(path_env); // strtok modifies the string, so duplicate it
   char *dir = strtok(path_copy, ":");
   char temp_path[1024];
   char *result = NULL;
 
   while (dir != NULL)
   {
-    sprintf(temp_path, "%s/%s", dir, arg);
+    sprintf(temp_path, "%s/%s", dir, name);
 
-    // if find an executable file
-    if (access(temp_path, X_OK) == 0)
+    if (access(temp_path, X_OK) == 0) // X_OK checks execute permission
     {
       result = strdup(temp_path);
       break;
     }
 
-    // return NULL when finishing splitting
     dir = strtok(NULL, ":");
   }
 
   free(path_copy);
-
   return result;
 }
