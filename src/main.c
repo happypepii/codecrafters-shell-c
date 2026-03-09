@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 char *isExecutable(char *arg);
 
@@ -75,9 +76,10 @@ int main(int argc, char *argv[])
         perror("execv failed"); 
         exit(1);
       }
-      else
-        wait(NULL); // if parent process, wait for child process before proceeding.
-      // printf(".%s %s\n", isExecutable(cmd), arg);
+      else{
+        wait(NULL); 
+        // if parent process, wait for child process before proceeding.
+      }
     }
     else
     {
