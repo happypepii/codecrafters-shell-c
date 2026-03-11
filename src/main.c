@@ -68,9 +68,19 @@ int main(int argc, char *argv[])
         perror("pwd error");
       }
     }
-    else if (strcmp(cmd, "cd") == 0){
-      if(chdir(rest_args) != 0){
-        printf("cd: %s: No such file or directory\n", rest_args);
+    else if (strcmp(cmd, "cd") == 0)
+    {
+      if (strcmp(rest_args, "~") == 0)
+      {
+        char *home = getenv("HOME");
+        chdir(home);
+      }
+      else
+      {
+        if (chdir(rest_args) != 0)
+        {
+          printf("cd: %s: No such file or directory\n", rest_args);
+        }
       }
     }
     else
@@ -155,12 +165,15 @@ char *findExecutable(char *name)
   return result;
 }
 
-int isBuiltIn(char *cmd) {
-    char *builtins[] = {"exit", "type", "echo", "pwd", "cd", NULL};
-    for (int i = 0; builtins[i] != NULL; i++) {
-        if (strcmp(cmd, builtins[i]) == 0) {
-            return 1;
-        }
+int isBuiltIn(char *cmd)
+{
+  char *builtins[] = {"exit", "type", "echo", "pwd", "cd", NULL};
+  for (int i = 0; builtins[i] != NULL; i++)
+  {
+    if (strcmp(cmd, builtins[i]) == 0)
+    {
+      return 1;
     }
-    return 0;
+  }
+  return 0;
 }
