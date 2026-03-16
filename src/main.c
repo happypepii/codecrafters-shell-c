@@ -7,6 +7,7 @@
 
 char *findExecutable(char *name);
 int isBuiltIn(char *cmd);
+void printFileContent(char *file_path);
 
 int main(int argc, char *argv[])
 {
@@ -28,8 +29,37 @@ int main(int argc, char *argv[])
     }
     else if (strcmp(cmd, "echo") == 0)
     {
-      // rest_args might be NULL if user types "echo" with no arguments
-      printf("%s\n", rest_args ? rest_args : "");
+      char *ptr = input + strlen(cmd) + 1;
+      int in_quotes = 0;
+      int has_printed_space = 0;
+
+      while (*ptr != '\0')
+      {
+        if (*ptr == '\"' || *ptr == '\'')
+        {
+          in_quotes = !in_quotes;
+        }
+        else if (in_quotes)
+        {
+          putchar(*ptr);
+          has_printed_space = 0; // reset flag
+        }
+        else
+        {
+          if (*ptr != ' ')
+          {
+            putchar(*ptr);
+            has_printed_space = 0;
+          }
+          else if (!has_printed_space)
+          {
+            putchar(' ');
+            has_printed_space = 1;
+          }
+        }
+        ptr++;
+      }
+      printf("\n");
     }
     else if (strcmp(cmd, "type") == 0)
     {
@@ -82,6 +112,44 @@ int main(int argc, char *argv[])
           printf("cd: %s: No such file or directory\n", rest_args);
         }
       }
+    }
+    else if (strcmp(cmd, "cat") == 0)
+    {
+      char *ptr = input + strlen(cmd) + 1;
+      int in_quotes = 0;
+      char file_path[1000] = {0};
+      int i = 0;
+
+      while (*ptr != '\0')
+      {
+        if (*ptr == ' ' && !in_quotes && i == 0)
+        {
+          ptr++;
+          continue;
+        }
+
+        if (*ptr == '\"' || *ptr == '\'')
+        {
+          in_quotes = !in_quotes;
+        }
+        else if (!in_quotes && *ptr == ' ')
+        {
+          file_path[i] = '\0';
+          printFileContent(file_path);
+          i = 0;
+        }
+        else
+        {
+          file_path[i++] = *ptr;
+        }
+        ptr++;
+      }
+      if (i > 0)
+      {
+        file_path[i] = '\0';
+        printFileContent(file_path);
+      }
+      printf("\n");
     }
     else
     {
@@ -176,4 +244,27 @@ int isBuiltIn(char *cmd)
     }
   }
   return 0;
+}
+
+void printFileContent(char *file_path)
+{
+  if (strlen(file_path) == 0)
+    return;
+
+  FILE *fp = fopen(file_path, "r");
+  if (fp == NULL)
+  {
+    fprintf(stderr, "cat: %s: No such file or directory\n", file_path);
+  }
+  else
+  {
+    char buffer[1024];
+    while (fgets(buffer, sizeof(buffer), fp))
+    {
+      buffer[strlen(buffer) - 1] = '\0';
+      printf("%s", buffer);
+    }
+    printf(" ");
+    fclose(fp);
+  }
 }
