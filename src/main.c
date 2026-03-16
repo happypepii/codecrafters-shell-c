@@ -261,7 +261,11 @@ void printFileContent(char *file_path)
     char buffer[1024];
     while (fgets(buffer, sizeof(buffer), fp))
     {
-      buffer[strlen(buffer) - 1] = '\0';
+      size_t len = strlen(buffer);
+      if (len > 0 && buffer[len - 1] == '\n')
+      {
+        buffer[len - 1] = '\0';
+      }
       printf("%s", buffer);
     }
     printf(" ");
