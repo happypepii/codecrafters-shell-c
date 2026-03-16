@@ -268,7 +268,6 @@ void printFileContent(char *file_path)
       }
       printf("%s", buffer);
     }
-    printf(" ");
     fclose(fp);
   }
 }
