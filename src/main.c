@@ -32,12 +32,15 @@ int main(int argc, char *argv[])
       char *ptr = input + strlen(cmd) + 1;
       int in_quotes = 0;
       int has_printed_space = 0;
+      char quote_symbol = 0;
 
       while (*ptr != '\0')
       {
-        if (*ptr == '\"' || *ptr == '\'')
+        // if meet quote, either there was no quote_symbol or quote-symbol is the same as last one can the state be changed
+        if ((*ptr == '\"' || *ptr == '\'') && (!quote_symbol || quote_symbol == *ptr))
         {
           in_quotes = !in_quotes;
+          quote_symbol = in_quotes ? *ptr : 0;
         }
         else if (in_quotes)
         {
