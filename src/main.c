@@ -122,6 +122,7 @@ int main(int argc, char *argv[])
       int in_quotes = 0;
       char file_path[1000] = {0};
       int i = 0;
+      char quote_symbol = 0;
 
       while (*ptr != '\0')
       {
@@ -131,9 +132,10 @@ int main(int argc, char *argv[])
           continue;
         }
 
-        if (*ptr == '\"' || *ptr == '\'')
+        if ((*ptr == '\"' || *ptr == '\'') && (!quote_symbol || quote_symbol == *ptr))
         {
           in_quotes = !in_quotes;
+          quote_symbol = in_quotes ? *ptr : 0;
         }
         else if (!in_quotes && *ptr == ' ')
         {
